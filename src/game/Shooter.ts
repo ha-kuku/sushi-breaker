@@ -6,7 +6,7 @@ import { angleBetween } from '@/utils/math';
 
 const SHOOTER_Y = VIEW_HEIGHT - 90;
 const GUIDE_LENGTH = 90;
-const LOADED_SUSHI_SCALE = 1.4;
+const LOADED_SUSHI_SCALE = 2.8;
 const SUSHIS: SushiType[] = [
   'egg',
   'shrimp',
@@ -115,7 +115,11 @@ export class Shooter {
   setPointerPosition(worldX: number, worldY: number): void {
     const lx = worldX - this.container.x;
     const ly = worldY - (this.container.y + this.currentSushiView.y);
-    this._angle = angleBetween(0, 0, lx, ly);
+    let angle = angleBetween(0, 0, lx, ly);
+    const HALF_SPREAD = Math.PI / 2; // 위쪽 기준 좌우 90도 (총 180도)
+    if (angle < -HALF_SPREAD) angle = -HALF_SPREAD;
+    if (angle > HALF_SPREAD) angle = HALF_SPREAD;
+    this._angle = angle;
     this.drawGuide();
   }
 

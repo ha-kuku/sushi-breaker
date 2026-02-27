@@ -34,6 +34,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // 기본 2MiB 제한을 넘어가는 썸네일 등을 캐싱하기 위해 상한을 올린다.
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MiB
       },
     }),
   ],

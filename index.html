@@ -31,6 +31,16 @@
           padding-right: env(safe-area-inset-right);
         }
       }
+
+      /* PWA(standalone) 모드에서만 게임 전체를 조금 더 아래로 내리기 */
+      @media (display-mode: standalone) {
+        #game-container {
+          align-items: flex-start;
+        }
+        #game-canvas-wrapper {
+          margin-top: 28px;
+        }
+      }
       #game-canvas-wrapper {
         position: relative;
         width: 390px; height: 844px;

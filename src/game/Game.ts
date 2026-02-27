@@ -1,5 +1,5 @@
 import type { Application } from 'pixi.js';
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Text } from 'pixi.js';
 import { VIEW_WIDTH, VIEW_HEIGHT, CHAIN_SPEED } from '@/utils/constants';
 import { Path } from '@/game/Path';
 import { SushiChain } from '@/game/SushiChain';
@@ -11,6 +11,17 @@ import { useGameStore } from '@/store/gameStore';
 import { getGingerSpeedMultiplier, activateWasabi as doActivateWasabi, executeWasabiBomb, activateGinger as doActivateGinger } from '@/game/ItemSystem';
 import { vibrateOnMatch } from '@/utils/haptics';
 import { sound } from '@/utils/sound';
+
+const POPUP_DURATION = 0.8;
+const POPUP_RISE = 40;
+const POPUP_STYLE = {
+  fontFamily: 'Arial Black, Arial, sans-serif',
+  fontSize: 22,
+  fontWeight: 'bold' as const,
+  fill: '#FFD700',
+  stroke: { color: '#333333', width: 4 },
+  align: 'center' as const,
+};
 
 /** 나무 배경 (카운터/테이블 느낌) */
 function createWoodBackground(): Graphics {
@@ -37,8 +48,11 @@ export class Game {
   readonly shooter: Shooter;
   private _pointerWasDown = false;
   private _removeAnimations: { view: Container; timer: number; duration: number }[] = [];
+  private _scorePopups: { view: Text; timer: number; duration: number; startY: number }[] = [];
   private _projectileFlightTime = 0;
   private _wasabiMode = false;
+  private _shakeTimer = 0;
+  private _shakeIntensity = 0;
 
   constructor(private _app: Application) {
     this.stage = this._app.stage;
@@ -117,6 +131,25 @@ export class Game {
         this._removeAnimations.splice(i, 1);
       }
     }
+    for (let i = this._scorePopups.length - 1; i >= 0; i--) {
+      const p = this._scorePopups[i];
+      p.timer -= dt;
+      const progress = 1 - Math.max(0, p.timer / p.duration);
+      p.view.y = p.startY - POPUP_RISE * progress;
+      p.view.alpha = 1 - progress * progress;
+      if (p.timer <= 0) {
+        p.view.removeFromParent();
+        this._scorePopups.splice(i, 1);
+      }
+    }
+    if (this._shakeTimer > 0) {
+      this._shakeTimer -= dt;
+      this.gameLayer.x = (Math.random() - 0.5) * 2 * this._shakeIntensity;
+      this.gameLayer.y = (Math.random() - 0.5) * 2 * this._shakeIntensity;
+    } else {
+      this.gameLayer.x = 0;
+      this.gameLayer.y = 0;
+    }
     const proj = this.shooter.projectile;
     if (proj?.active && proj.view && !proj.view.parent) {
       this.gameLayer.addChild(proj.view);
@@ -139,13 +172,19 @@ export class Game {
       if (this._wasabiMode) {
         this._wasabiMode = false;
         this.shooter.clearProjectile();
-        executeWasabiBomb(this.chain, collision.pathIndex, (s) => {
-          this._removeAnimations.push({
-            view: s.view,
-            timer: Game.REMOVE_ANIM_DURATION,
-            duration: Game.REMOVE_ANIM_DURATION,
-          });
-        });
+        executeWasabiBomb(
+          this.chain,
+          collision.pathIndex,
+          (s) => {
+            this._removeAnimations.push({
+              view: s.view,
+              timer: Game.REMOVE_ANIM_DURATION,
+              duration: Game.REMOVE_ANIM_DURATION,
+            });
+          },
+          (cx, cy, score, combo) => this.addScorePopup(cx, cy, score, combo)
+        );
+        this.triggerShake(5, 0.3);
         sound.item();
       } else {
         const newSushi = this.chain.insertAtPathIndex(collision.pathIndex, proj.type);
@@ -163,10 +202,14 @@ export class Game {
 
     while (match.length >= 1) {
       comboCount++;
-      const baseScore = match.reduce((sum, ci) => {
-        const s = this.chain.sushis.find((x) => x.chainIndex === ci);
-        return sum + (s ? getSushiScore(s.type) : 0);
-      }, 0);
+      const matched = match
+        .map((ci) => this.chain.sushis.find((x) => x.chainIndex === ci))
+        .filter((s): s is NonNullable<typeof s> => s != null);
+      const baseScore = matched.reduce((sum, s) => sum + getSushiScore(s.type), 0);
+
+      const cx = matched.reduce((sum, s) => sum + s.view.x, 0) / matched.length;
+      const cy = matched.reduce((sum, s) => sum + s.view.y, 0) / matched.length;
+
       const removed = this.chain.removeAtChainIndices(match);
       const duration = Game.REMOVE_ANIM_DURATION;
       removed.forEach((s) => {
@@ -177,8 +220,29 @@ export class Game {
       else sound.match();
       store.addScore(baseScore, comboCount);
 
+      const mult = comboCount <= 1 ? 1 : Math.pow(1.2, comboCount - 1);
+      this.addScorePopup(cx, cy, Math.round(baseScore * mult), comboCount);
+      if (comboCount >= 2) {
+        this.triggerShake(2 + comboCount, 0.12 + comboCount * 0.04);
+      }
+
       match = findNextCombo(this.chain.sushis) ?? [];
     }
+  }
+
+  private addScorePopup(x: number, y: number, score: number, comboCount: number): void {
+    const label = comboCount > 1 ? `Combo x${comboCount}\n+${score}` : `+${score}`;
+    const text = new Text({ text: label, style: POPUP_STYLE });
+    text.anchor.set(0.5);
+    text.x = x;
+    text.y = y;
+    this.gameLayer.addChild(text);
+    this._scorePopups.push({ view: text, timer: POPUP_DURATION, duration: POPUP_DURATION, startY: y });
+  }
+
+  private triggerShake(intensity: number, duration: number): void {
+    this._shakeIntensity = Math.max(this._shakeIntensity, intensity);
+    this._shakeTimer = Math.max(this._shakeTimer, duration);
   }
 
   useWasabi(): boolean {

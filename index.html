@@ -58,14 +58,20 @@
       /* Title Screen — inside canvas wrapper */
       #title-screen {
         position: absolute; inset: 0; z-index: 200;
-        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-        background: rgba(74, 44, 16, 0.92);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: #000;
+        background-image: url('assets/ui/thumnail.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
       }
       #title-screen.hidden { display: none; }
-      #title-screen h1 { color: #fff; font-size: 1.8rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-      #title-screen p { color: #fde68a; font-size: 1rem; }
       #title-screen button {
-        margin-top: 12px; padding: 14px 40px;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 25%;
+        padding: 14px 40px;
         background: #d97706; color: #fff;
         font-size: 1.2rem; font-weight: bold;
         border: none; border-radius: 14px;
@@ -96,8 +102,6 @@
       <div id="game-canvas-wrapper">
         <div id="ui-overlay"></div>
         <div id="title-screen">
-          <h1>회전초밥 브레이커</h1>
-          <p>Chef's Hand</p>
           <button id="start-btn">시작</button>
         </div>
       </div>

@@ -58,9 +58,9 @@ async function init() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let game: any = null;
 
-  function startNewGame(level = 1) {
+  function startNewGame() {
     game?.destroy();
-    useGameStore.getState().resetGame(level);
+    useGameStore.getState().resetGame();
     game = new Game(app);
     buildHUD();
   }
@@ -183,7 +183,7 @@ async function init() {
     function update() {
       const s = useGameStore.getState();
       const sc = document.getElementById('hud-score');
-      if (sc) sc.textContent = `${s.score} / ${s.targetScore}`;
+      if (sc) sc.textContent = String(s.score);
       const cw = document.getElementById('count-wasabi');
       if (cw) cw.textContent = `×${s.items.wasabi}`;
       const cg = document.getElementById('count-ginger');
@@ -193,35 +193,24 @@ async function init() {
         nxImg.src = `assets/sushi/${game.shooter.nextType}.png`;
       }
 
-      if (s.gameState === 'clear' && !document.getElementById('clear-overlay')) {
-        showOverlay('clear-overlay', '클리어!', `점수: ${s.score} / ${s.targetScore}`, '다음 레벨', () => {
-          document.getElementById('clear-overlay')?.remove();
-          const lvl = useGameStore.getState().level + 1;
-          startNewGame(lvl);
-        });
-      }
       if (s.gameState === 'gameover' && !document.getElementById('gameover-overlay')) {
-        showOverlay('gameover-overlay', '게임 오버', `점수: ${s.score}`, '다시 하기', () => {
-          document.getElementById('gameover-overlay')?.remove();
-          startNewGame(1);
+        const scr = document.createElement('div');
+        scr.id = 'gameover-overlay';
+        scr.className = 'screen-overlay';
+        scr.style.background = 'rgba(0,0,0,0.7)';
+        const h2 = document.createElement('h2');
+        h2.textContent = '게임 오버';
+        const p = document.createElement('p');
+        p.textContent = `점수: ${s.score}`;
+        const btn = document.createElement('button');
+        btn.textContent = '다시 하기';
+        btn.addEventListener('click', () => {
+          scr.remove();
+          startNewGame();
         });
+        scr.append(h2, p, btn);
+        overlay?.appendChild(scr);
       }
-    }
-
-    function showOverlay(id: string, titleText: string, scoreText: string, btnText: string, onClick: () => void) {
-      const scr = document.createElement('div');
-      scr.id = id;
-      scr.className = 'screen-overlay';
-      scr.style.background = id === 'clear-overlay' ? 'rgba(74,44,16,0.9)' : 'rgba(0,0,0,0.7)';
-      const h2 = document.createElement('h2');
-      h2.textContent = titleText;
-      const p = document.createElement('p');
-      p.textContent = scoreText;
-      const btn = document.createElement('button');
-      btn.textContent = btnText;
-      btn.addEventListener('click', onClick);
-      scr.append(h2, p, btn);
-      overlay?.appendChild(scr);
     }
 
     useGameStore.subscribe(update);
@@ -234,7 +223,7 @@ async function init() {
   startBtn?.addEventListener('click', () => {
     console.log('[SushiBreaker] Start clicked');
     titleScreen?.classList.add('hidden');
-    startNewGame(1);
+    startNewGame();
   });
 
   console.log('[SushiBreaker] Ready');

@@ -35,6 +35,3 @@ export const MATCH_MIN_COUNT = 3;
 
 /** 콤보당 점수 배율 */
 export const COMBO_MULTIPLIER = 1.2;
-
-/** 레벨별 목표 점수 (기본) */
-export const TARGET_SCORE_BASE = 1000;

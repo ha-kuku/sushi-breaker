@@ -6,7 +6,6 @@ import { CHAIN_SPEED, SUSHI_SPACING } from '@/utils/constants';
 import { lerp } from '@/utils/math';
 
 const INITIAL_CHAIN_LENGTH = 10;
-const MAX_CHAIN_LENGTH = 50;
 const SPAWN_INTERVAL = 1.8;
 
 const SUSHI_TYPES: SushiType[] = [
@@ -45,9 +44,8 @@ export class SushiChain {
     this._totalSpawned = INITIAL_CHAIN_LENGTH;
   }
 
-  /** 매 tick마다 호출해서 새 초밥을 꼬리에 추가. 새로 추가된 엔티티를 반환. */
+  /** 매 tick마다 호출. 일정 시간마다 꼬리에 새 초밥 추가 (실패할 때까지 무한). */
   trySpawnNext(dt: number): SushiEntity | null {
-    if (this._totalSpawned >= MAX_CHAIN_LENGTH) return null;
     this._spawnTimer += dt;
     if (this._spawnTimer < SPAWN_INTERVAL) return null;
     this._spawnTimer -= SPAWN_INTERVAL;
@@ -61,9 +59,6 @@ export class SushiChain {
     this._totalSpawned++;
     return sushi;
   }
-
-  get totalSpawned(): number { return this._totalSpawned; }
-  get maxChainLength(): number { return MAX_CHAIN_LENGTH; }
 
   get sushis(): SushiEntity[] {
     return this._sushis;

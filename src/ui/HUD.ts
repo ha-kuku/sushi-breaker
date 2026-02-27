@@ -71,7 +71,7 @@ export function createHUD(getGame: () => Game | null): HTMLElement {
   function update() {
     const s = useGameStore.getState();
     const scoreEl = document.getElementById('hud-score');
-    if (scoreEl) scoreEl.textContent = `${s.score} / ${s.targetScore}`;
+    if (scoreEl) scoreEl.textContent = String(s.score);
     const cw = document.getElementById('count-wasabi');
     if (cw) cw.textContent = `×${s.items.wasabi}`;
     const cg = document.getElementById('count-ginger');

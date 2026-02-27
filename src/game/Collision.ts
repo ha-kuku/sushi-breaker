@@ -2,15 +2,21 @@ import type { Path } from '@/game/Path';
 import type { SushiEntity } from '@/game/Sushi';
 import type { Projectile } from '@/game/Shooter';
 import { distance } from '@/utils/math';
-import { SUSHI_RADIUS } from '@/utils/constants';
+import { SUSHI_RADIUS, SUSHI_SPACING } from '@/utils/constants';
 
-/** 충돌 시 삽입할 경로 인덱스 (발사체 위치에서 가장 가까운 경로 위 점) */
-export function getInsertPathIndex(path: Path, projX: number, projY: number): number {
-  const len = path.length;
-  let bestIndex = 0;
+/** 충돌한 초밥의 pathIndex 근처에서 발사체에 가장 가까운 경로 점을 찾는다. */
+export function getInsertPathIndex(
+  path: Path,
+  projX: number,
+  projY: number,
+  hitSushiPathIndex: number
+): number {
+  const searchRadius = SUSHI_SPACING * 3;
+  const low = Math.max(0, Math.floor(hitSushiPathIndex - searchRadius));
+  const high = Math.min(path.length - 1, Math.ceil(hitSushiPathIndex + searchRadius));
+  let bestIndex = Math.round(hitSushiPathIndex);
   let bestDist = Infinity;
-  const step = Math.max(1, Math.floor(len / 200));
-  for (let i = 0; i < len; i += step) {
+  for (let i = low; i <= high; i++) {
     const pt = path.getPoint(i);
     const d = distance(projX, projY, pt.x, pt.y);
     if (d < bestDist) {
@@ -45,7 +51,7 @@ export function checkProjectileChainCollision(
     const pt = path.getPoint(sushi.pathIndex);
     const d = distance(px, py, pt.x, pt.y);
     if (d < threshold) {
-      const pathIndex = getInsertPathIndex(path, px, py);
+      const pathIndex = getInsertPathIndex(path, px, py, sushi.pathIndex);
       return {
         hit: true,
         pathIndex,

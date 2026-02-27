@@ -91,6 +91,72 @@
   justify-content: center;
 }
 
+/* Onboarding modal */
+.onboarding-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.onboarding-inner {
+  background: linear-gradient(180deg, #5c3d1e 0%, #3d2814 100%);
+  border: 3px solid rgba(251, 191, 36, 0.5);
+  border-radius: 16px;
+  padding: 24px 20px;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.onboarding-title {
+  color: #fbbf24;
+  font-size: 1.35rem;
+  margin: 0 0 16px 0;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.onboarding-list {
+  color: #fef3c7;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  padding-left: 1.2rem;
+}
+
+.onboarding-list li {
+  margin-bottom: 10px;
+}
+
+.onboarding-list strong {
+  color: #fde68a;
+}
+
+.onboarding-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  cursor: pointer;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  transition: transform 0.08s;
+}
+
+.onboarding-btn:active {
+  transform: scale(0.98);
+}
+
 /* Overlay screens (clear / gameover) */
 .screen-overlay {
   position: absolute;

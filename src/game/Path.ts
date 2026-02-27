@@ -17,17 +17,42 @@ export class Path {
   }
 
   /**
-   * 좌우 지그재그 5단 경로 (시안 레이아웃).
-   * 상단 입구 → 좌우로 왕복하며 하강 → 하단 슈터 근처에서 종료.
+   * 초반: 가로로 누운 S자 2회 (굴곡 크게) → 이후 기본 S자 지그재그로 하강.
    */
   private createSCurve(): BezierCurve[] {
     const w = VIEW_WIDTH;
     const L = 35;
     const R = w - 35;
-    const rows = [90, 210, 330, 450, 570];
+    const mid = w / 2;
     const bulge = 50;
     const curves: BezierCurve[] = [];
 
+    // ---- 가로 S 1회: 좌→우, 굴곡 크게 (~)
+    curves.push({
+      start: { x: L, y: 88 },
+      cp1: { x: 100, y: 175 },
+      cp2: { x: 290, y: 8 },
+      end: { x: R, y: 88 },
+    });
+
+    // ---- 가로 S 2회: 우→좌, 굴곡 크게 (~)
+    curves.push({
+      start: { x: R, y: 198 },
+      cp1: { x: 290, y: 288 },
+      cp2: { x: 100, y: 108 },
+      end: { x: L, y: 198 },
+    });
+
+    // ---- 연결: 좌측에서 기본 S자 첫 행으로
+    curves.push({
+      start: { x: L, y: 198 },
+      cp1: { x: L - bulge, y: 218 },
+      cp2: { x: L - bulge, y: 248 },
+      end: { x: L, y: 268 },
+    });
+
+    // ---- 기본 S자: 좌우 지그재그 4단
+    const rows = [268, 330, 450, 570];
     for (let i = 0; i < rows.length; i++) {
       const y = rows[i];
       const goRight = i % 2 === 0;
@@ -75,8 +100,8 @@ export class Path {
     curves.push({
       start: { x: lastX, y: lastY },
       cp1: { x: lastX, y: lastY + 40 },
-      cp2: { x: w / 2, y: lastY + 60 },
-      end: { x: w / 2, y: lastY + 90 },
+      cp2: { x: mid, y: lastY + 60 },
+      end: { x: mid, y: lastY + 90 },
     });
 
     return curves;

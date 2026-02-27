@@ -8,7 +8,7 @@ import { checkProjectileChainCollision } from '@/game/Collision';
 import { findMatch, findNextCombo } from '@/game/Matcher';
 import { getSushiScore } from '@/game/Sushi';
 import { useGameStore } from '@/store/gameStore';
-import { getGingerSpeedMultiplier, activateWasabi as doActivateWasabi, activateGinger as doActivateGinger } from '@/game/ItemSystem';
+import { getGingerSpeedMultiplier, activateWasabi as doActivateWasabi, executeWasabiBomb, activateGinger as doActivateGinger } from '@/game/ItemSystem';
 import { vibrateOnMatch } from '@/utils/haptics';
 import { sound } from '@/utils/sound';
 
@@ -25,6 +25,9 @@ function createWoodBackground(): Graphics {
   return g;
 }
 
+const PROJECTILE_MISS_MARGIN = 80;
+const PROJECTILE_MISS_TIMEOUT = 4;
+
 export class Game {
   readonly stage: Container;
   readonly background: Graphics;
@@ -34,6 +37,8 @@ export class Game {
   readonly shooter: Shooter;
   private _pointerWasDown = false;
   private _removeAnimations: { view: Container; timer: number; duration: number }[] = [];
+  private _projectileFlightTime = 0;
+  private _wasabiMode = false;
 
   constructor(private _app: Application) {
     this.stage = this._app.stage;
@@ -76,6 +81,7 @@ export class Game {
     this.shooter.pointerUpHandler();
     if (this._pointerWasDown && this.shooter.canFire) {
       this.shooter.fire();
+      this._projectileFlightTime = 0;
       sound.shoot();
       const pv = this.shooter.getProjectileView();
       if (pv) this.gameLayer.addChild(pv);
@@ -115,12 +121,38 @@ export class Game {
     if (proj?.active && proj.view && !proj.view.parent) {
       this.gameLayer.addChild(proj.view);
     }
+    if (proj?.active) {
+      this._projectileFlightTime += dt;
+      const outOfBounds =
+        proj.x < -PROJECTILE_MISS_MARGIN ||
+        proj.x > VIEW_WIDTH + PROJECTILE_MISS_MARGIN ||
+        proj.y < -PROJECTILE_MISS_MARGIN ||
+        proj.y > VIEW_HEIGHT + PROJECTILE_MISS_MARGIN;
+      if (outOfBounds || this._projectileFlightTime >= PROJECTILE_MISS_TIMEOUT) {
+        this.shooter.restoreMissedShot(proj.type);
+        this._projectileFlightTime = 0;
+      }
+    }
     const collision = checkProjectileChainCollision(proj, this.chain, this.path);
     if (collision?.hit && proj) {
-      const newSushi = this.chain.insertAtPathIndex(collision.pathIndex, proj.type);
-      this.gameLayer.addChild(newSushi.view);
-      this.shooter.clearProjectile();
-      this.processMatches(newSushi.chainIndex);
+      this._projectileFlightTime = 0;
+      if (this._wasabiMode) {
+        this._wasabiMode = false;
+        this.shooter.clearProjectile();
+        executeWasabiBomb(this.chain, collision.pathIndex, (s) => {
+          this._removeAnimations.push({
+            view: s.view,
+            timer: Game.REMOVE_ANIM_DURATION,
+            duration: Game.REMOVE_ANIM_DURATION,
+          });
+        });
+        sound.item();
+      } else {
+        const newSushi = this.chain.insertAtPathIndex(collision.pathIndex, proj.type);
+        this.gameLayer.addChild(newSushi.view);
+        this.shooter.clearProjectile();
+        this.processMatches(newSushi.chainIndex);
+      }
     }
   }
 
@@ -150,15 +182,10 @@ export class Game {
   }
 
   useWasabi(): boolean {
-    const ok = doActivateWasabi(this.chain, this.path, (s) => {
-      this._removeAnimations.push({
-        view: s.view,
-        timer: Game.REMOVE_ANIM_DURATION,
-        duration: Game.REMOVE_ANIM_DURATION,
-      });
-    });
-    if (ok) sound.item();
-    return ok;
+    if (!doActivateWasabi()) return false;
+    this._wasabiMode = true;
+    sound.item();
+    return true;
   }
 
   useGinger(): boolean {

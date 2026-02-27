@@ -173,6 +173,21 @@ export class Shooter {
     }
   }
 
+  /**
+   * 체인 밖으로 나갔을 때 호출. 발사한 초밥을 다시 슈터에 넣어서 재발사 가능하게 함.
+   */
+  restoreMissedShot(shotType: SushiType): void {
+    if (!this._projectile) return;
+    this._projectile.view.removeFromParent();
+    this._projectile = null;
+    this._currentType = shotType;
+    this.currentSushiView.removeFromParent();
+    this.currentSushiView = createSushiView(this._currentType);
+    this.currentSushiView.y = -36;
+    this.container.addChild(this.currentSushiView);
+    this.drawGuide();
+  }
+
   /** 발사체 뷰를 부모에 추가 (Game에서 레이어에 넣을 때) */
   getProjectileView(): Container | null {
     return this._projectile?.view ?? null;

@@ -63,6 +63,45 @@ async function init() {
     useGameStore.getState().resetGame();
     game = new Game(app);
     buildHUD();
+    showOnboardingModal();
+  }
+
+  function showOnboardingModal() {
+    const overlay = document.getElementById('ui-overlay');
+    if (!overlay || document.getElementById('onboarding-modal')) return;
+    useGameStore.getState().setGameState('paused');
+
+    const modal = document.createElement('div');
+    modal.id = 'onboarding-modal';
+    modal.className = 'onboarding-modal';
+
+    const inner = document.createElement('div');
+    inner.className = 'onboarding-inner';
+
+    const title = document.createElement('h2');
+    title.textContent = '게임 방법';
+    title.className = 'onboarding-title';
+
+    const list = document.createElement('ul');
+    list.className = 'onboarding-list';
+    list.innerHTML = `
+      <li>같은 종류 초밥 <strong>3개 이상</strong>을 연속으로 맞추면 터져요.</li>
+      <li>화면을 <strong>드래그</strong>해서 방향을 정한 뒤 손을 떼면 발사됩니다.</li>
+      <li>초밥이 <strong>끝까지 도달</strong>하면 게임 오버예요.</li>
+      <li>우측 하단 <strong>아이템</strong>으로 와사비 폭탄·생강 슬로우를 쓸 수 있어요.</li>
+    `;
+
+    const btn = document.createElement('button');
+    btn.className = 'onboarding-btn';
+    btn.textContent = '시작하기';
+    btn.addEventListener('click', () => {
+      modal.remove();
+      useGameStore.getState().setGameState('playing');
+    });
+
+    inner.append(title, list, btn);
+    modal.appendChild(inner);
+    overlay?.appendChild(modal);
   }
 
   function buildHUD() {

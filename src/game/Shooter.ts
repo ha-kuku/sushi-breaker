@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Sprite } from 'pixi.js';
 import type { SushiType } from '@/types';
 import { VIEW_WIDTH, VIEW_HEIGHT, PROJECTILE_SPEED } from '@/utils/constants';
 import { createSushiView } from '@/game/Sushi';
@@ -6,6 +6,7 @@ import { angleBetween } from '@/utils/math';
 
 const SHOOTER_Y = VIEW_HEIGHT - 90;
 const GUIDE_LENGTH = 90;
+const LOADED_SUSHI_SCALE = 1.4;
 const SUSHIS: SushiType[] = [
   'egg',
   'shrimp',
@@ -32,7 +33,7 @@ export interface Projectile {
 
 export class Shooter {
   readonly container: Container;
-  private handGraphic: Graphics;
+  private shooterSprite: Sprite;
   private guideGraphic: Graphics;
   private currentSushiView: Container;
   private _currentType: SushiType;
@@ -43,13 +44,13 @@ export class Shooter {
 
   constructor() {
     this.container = new Container();
-    this.container.x = VIEW_WIDTH / 2;
+    this.container.x = VIEW_WIDTH / 2 + 2;
     this.container.y = SHOOTER_Y;
 
-    this.handGraphic = new Graphics();
-    this.handGraphic.circle(0, 0, 24).fill({ color: 0xffdbac });
-    this.handGraphic.circle(0, 0, 24).stroke({ width: 2, color: 0x8b4513 });
-    this.container.addChild(this.handGraphic);
+    this.shooterSprite = Sprite.from('assets/ui/shooter.png');
+    this.shooterSprite.anchor.set(0.55, 0.28);
+    this.shooterSprite.scale.set(0.19);
+    this.container.addChild(this.shooterSprite);
 
     this.guideGraphic = new Graphics();
     this.container.addChild(this.guideGraphic);
@@ -58,6 +59,7 @@ export class Shooter {
     this._nextType = randomType();
     this.currentSushiView = createSushiView(this._currentType);
     this.currentSushiView.y = -36;
+    this.currentSushiView.scale.set(LOADED_SUSHI_SCALE);
     this.container.addChild(this.currentSushiView);
 
     this.drawGuide();
@@ -151,6 +153,7 @@ export class Shooter {
     this.currentSushiView.removeFromParent();
     this.currentSushiView = createSushiView(this._currentType);
     this.currentSushiView.y = -36;
+    this.currentSushiView.scale.set(LOADED_SUSHI_SCALE);
     this.container.addChild(this.currentSushiView);
     this.drawGuide();
   }
@@ -184,6 +187,7 @@ export class Shooter {
     this.currentSushiView.removeFromParent();
     this.currentSushiView = createSushiView(this._currentType);
     this.currentSushiView.y = -36;
+    this.currentSushiView.scale.set(LOADED_SUSHI_SCALE);
     this.container.addChild(this.currentSushiView);
     this.drawGuide();
   }

@@ -47,6 +47,7 @@ async function init() {
     ...getSushiTexturePaths(),
     'assets/items/wasabi.png',
     'assets/items/ginger.png',
+    'assets/ui/shooter.png',
   ];
   await Assets.load(allTextures);
   console.log('[SushiBreaker] Assets preloaded');

@@ -1,0 +1,29 @@
+{
+  "name": "sushi-breaker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
+  },
+  "dependencies": {
+    "pixi.js": "^8.5.2",
+    "zustand": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@vitejs/plugin-legacy": "^5.4.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.14.0",
+    "postcss": "^8.4.47",
+    "prettier": "^3.3.3",
+    "tailwindcss": "^3.4.14",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.10",
+    "vite-plugin-pwa": "^0.20.5"
+  }
+}

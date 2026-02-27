@@ -6,7 +6,7 @@ import { angleBetween } from '@/utils/math';
 
 const SHOOTER_Y = VIEW_HEIGHT - 90;
 const GUIDE_LENGTH = 90;
-const LOADED_SUSHI_SCALE = 2.8;
+const LOADED_SUSHI_SCALE = 1.96;
 const SUSHIS: SushiType[] = [
   'egg',
   'shrimp',
@@ -38,7 +38,7 @@ export class Shooter {
   private currentSushiView: Container;
   private _currentType: SushiType;
   private _nextType: SushiType;
-  private _angle: number = -Math.PI / 2;
+  private _angle: number = 0;
   private _projectile: Projectile | null = null;
   private pointerDown: boolean = false;
 
@@ -114,7 +114,9 @@ export class Shooter {
 
   setPointerPosition(worldX: number, worldY: number): void {
     const lx = worldX - this.container.x;
-    const ly = worldY - (this.container.y + this.currentSushiView.y);
+    // 조준 기준점을 슈터(손) 위치로 내려서,
+    // 손 주변을 터치해도 부드럽게 각도가 조절되도록 한다.
+    const ly = worldY - this.container.y;
     let angle = angleBetween(0, 0, lx, ly);
     const HALF_SPREAD = Math.PI / 2; // 위쪽 기준 좌우 90도 (총 180도)
     if (angle < -HALF_SPREAD) angle = -HALF_SPREAD;
